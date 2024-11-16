@@ -7,27 +7,30 @@ import {
   Body,
   ValidationPipe,
   UseGuards,
+  UseFilters,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { MagicLoginStrategy } from './magiclogin.strategy';
-import { PasswordLessLoginDto } from './passwordless-login.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { MagicLoginStrategy } from './strategy/magic-login.strategy'; // Correção da importação
+import { LoginDto } from './dto/login.dto';
+import { HttpExceptionsFilter } from 'src/common/filter/http-exception.filter';
 
 @Controller('auth')
+@UseFilters(HttpExceptionsFilter)
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private strategy: MagicLoginStrategy,
+    private readonly strategy: MagicLoginStrategy, // Adicionar readonly
   ) {}
 
   @Post('login')
-  login(
+  async login(
     @Req() req,
     @Res() res,
-    @Body(new ValidationPipe()) body: PasswordLessLoginDto,
+    @Body(new ValidationPipe()) body: LoginDto,
   ) {
-    this.authService.validateUser(body.destination);
-
+    await this.authService.validateUser(body.destination);
     return this.strategy.send(req, res);
   }
 
