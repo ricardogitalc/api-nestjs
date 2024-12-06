@@ -1,0 +1,102 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type LoginResponse {
+  accessToken: String!
+  message: String!
+  refreshToken: String!
+}
+
+type Mutation {
+  deleteProfile: User!
+  deleteUserById(id: Int!): User!
+  loginUser(loginUserInput: loginUserInput!): LoginResponse!
+  refreshToken(refreshToken: refreshTokenInput!): RefreshResponse!
+  registerUser(registerUserInput: registerUserInput!): RegisterResponse!
+  resetPwdConf(resetPwdConfInput: resetPwdConfInput!): LoginResponse!
+  resetPwdSent(resetPwdSentInput: resetPwdSentInput!): ResetResponse!
+  updateProfile(updateProfileInput: UpdateProfileInput!): User!
+  updateUserById(updateUserInput: UpdateUserInput!): User!
+  verifyUser(verificationToken: String!): LoginResponse!
+}
+
+type Query {
+  getAllUsers: [User!]!
+  getProfile: User!
+  getUserById(id: Int!): User!
+}
+
+type RefreshResponse {
+  accessToken: String!
+  message: String!
+  refreshToken: String!
+}
+
+type RegisterResponse {
+  message: String!
+  verificationToken: String!
+}
+
+type ResetResponse {
+  message: String!
+  resetToken: String!
+}
+
+input UpdateProfileInput {
+  firstName: String
+  lastName: String
+  password: String
+  whatsapp: String
+}
+
+input UpdateUserInput {
+  firstName: String
+  id: Int!
+  lastName: String
+  password: String
+  whatsapp: String
+}
+
+type User {
+  createdAt: DateTime!
+  email: String!
+  firstName: String!
+  id: Int!
+  lastName: String!
+  role: String!
+  updatedAt: DateTime!
+  verified: Boolean!
+  whatsapp: String
+}
+
+input loginUserInput {
+  email: String!
+  password: String!
+}
+
+input refreshTokenInput {
+  refreshToken: String!
+}
+
+input registerUserInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  whatsapp: String!
+}
+
+input resetPwdConfInput {
+  newPassword: String!
+  resetToken: String!
+}
+
+input resetPwdSentInput {
+  email: String!
+}
