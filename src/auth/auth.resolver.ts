@@ -21,9 +21,7 @@ export class AuthResolver {
 
   @Public()
   @Mutation(() => LoginResponse)
-  async loginUser(
-    @Args('loginUserInput') loginUserInput: loginUserInput,
-  ) {
+  async loginUser(@Args('loginUserInput') loginUserInput: loginUserInput) {
     return this.authService.login(loginUserInput);
   }
 

@@ -7,10 +7,8 @@ import { PrismaService } from './prisma/prisma.service';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { ErrorInterceptor } from './common/interceptors/error.interceptor';
 import { RolesGuard } from './common/guards/roles.guard';
 import { JwtAuthGuard } from './common/guards/jwt.guard';
-import { LoggerInterceptor } from './common/interceptors/logger.interceptor';
 
 @Module({
   imports: [
@@ -51,14 +49,6 @@ import { LoggerInterceptor } from './common/interceptors/logger.interceptor';
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ErrorInterceptor,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: LoggerInterceptor,
     },
   ],
 })

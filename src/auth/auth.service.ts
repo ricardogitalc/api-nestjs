@@ -219,4 +219,31 @@ export class AuthService {
       throw new UnauthorizedException(CONFIG_MESSAGES.tokenInvalid);
     }
   }
+
+  async googleLogin(profile: any) {
+    try {
+      let user = await this.prisma.user.findUnique({
+        where: { email: profile.email },
+      });
+
+      if (!user) {
+        user = await this.prisma.user.create({
+          data: {
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            provider: 'GOOGLE',
+            verified: true,
+          },
+        });
+      }
+
+      return {
+        accessToken: await this.generateJwtTokens(user),
+        refreshToken: await this.generateRefreshTokens(user),
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Erro na autenticação do Google');
+    }
+  }
 }

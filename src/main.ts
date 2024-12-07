@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { GraphqlExceptionFilter } from './common/filters/graphql-exception.filter';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
@@ -29,7 +28,7 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalFilters(new GraphqlExceptionFilter());
+  // app.useGlobalFilters(new GraphqlExceptionFilter());
 
   await app.listen(8000);
 }
