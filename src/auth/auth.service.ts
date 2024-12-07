@@ -14,9 +14,15 @@ import { loginUserInput, registerUserInput } from './inputs/auth.inputs';
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
+    private prismaService: PrismaService,
     private configService: ConfigService,
   ) {}
+
+  private async verifyResetToken(resetToken: string) {
+    const secret = this.configService.get('JWT_SECRET_KEY');
+    const key = createHash('sha256').update(secret).digest();
+    return jose.jwtDecrypt(resetToken, key);
+  }
 
   async generateJwtTokens(user: any) {
     const secret = this.configService.get('JWT_SECRET_KEY');
@@ -43,12 +49,12 @@ export class AuthService {
   }
 
   async validateUser(email: string, password: string) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prismaService.user.findUnique({
       where: { email },
     });
 
     if (!user) {
-      throw new UnauthorizedException(CONFIG_MESSAGES.userNotFound);
+      throw new UnauthorizedException(CONFIG_MESSAGES.invalidEmail);
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -72,6 +78,19 @@ export class AuthService {
         loginUserInput.password,
       );
 
+      const isGoogleProvider = await this.prismaService.user.findFirst({
+        where: {
+          provider: 'GOOGLE',
+          email: loginUserInput.email,
+        },
+      });
+
+      if (isGoogleProvider) {
+        throw new UnauthorizedException(
+          'Sua conta foi criada com o Google, faça login com o Google',
+        );
+      }
+
       return {
         message: CONFIG_MESSAGES.userLogged,
         accessToken: await this.generateJwtTokens(user),
@@ -83,48 +102,41 @@ export class AuthService {
   }
 
   async register(registerUserInput: registerUserInput) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: registerUserInput.email },
+    const { email, password } = registerUserInput;
+
+    const existingUser = await this.prismaService.user.findUnique({
+      where: { email },
     });
 
     if (existingUser && existingUser.verified) {
       throw new UnauthorizedException(CONFIG_MESSAGES.userAllReady);
     }
 
-    const hashedPassword = await bcrypt.hash(registerUserInput.password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    let user;
 
-    if (existingUser && !existingUser.verified) {
-      const updatedUser = await this.prisma.user.update({
-        where: { email: registerUserInput.email },
+    if (existingUser) {
+      user = await this.prismaService.user.update({
+        where: { email },
         data: {
           ...registerUserInput,
           password: hashedPassword,
           verified: false,
         },
       });
-
-      const verificationToken = await this.generateJwtTokens({
-        id: updatedUser.id,
-        email: updatedUser.email,
+    } else {
+      user = await this.prismaService.user.create({
+        data: {
+          ...registerUserInput,
+          password: hashedPassword,
+          verified: false,
+        },
       });
-
-      return {
-        message: CONFIG_MESSAGES.userUpdated,
-        verificationToken,
-      };
     }
 
-    const newUser = await this.prisma.user.create({
-      data: {
-        ...registerUserInput,
-        password: hashedPassword,
-        verified: false,
-      },
-    });
-
     const verificationToken = await this.generateJwtTokens({
-      id: newUser.id,
-      email: newUser.email,
+      id: user.id,
+      email: user.email,
     });
 
     return {
@@ -138,16 +150,20 @@ export class AuthService {
       const secret = this.configService.get('JWT_SECRET_KEY');
       const key = createHash('sha256').update(secret).digest();
       const { payload } = await jose.jwtDecrypt(verifyToken, key);
+      const userId = Number(payload.sub);
 
-      const user = await this.prisma.user.update({
-        where: { id: Number(payload.sub) },
+      const user = await this.prismaService.user.update({
+        where: { id: userId },
         data: { verified: true },
       });
 
+      const accessToken = await this.generateJwtTokens(user);
+      const refreshToken = await this.generateRefreshTokens(user);
+
       return {
         message: CONFIG_MESSAGES.userVerified,
-        accessToken: await this.generateJwtTokens(user),
-        refreshToken: await this.generateRefreshTokens(user),
+        accessToken,
+        refreshToken,
       };
     } catch (error) {
       throw new UnauthorizedException(CONFIG_MESSAGES.tokenInvalid);
@@ -159,18 +175,21 @@ export class AuthService {
       const secret = this.configService.get('REFRESH_SECRET_KEY');
       const key = createHash('sha256').update(secret).digest();
       const { payload } = await jose.jwtDecrypt(refreshToken, key);
+      const userId = Number(payload.sub);
 
-      const user = await this.prisma.user.findUnique({
-        where: { id: Number(payload.sub) },
+      const user = await this.prismaService.user.findUnique({
+        where: { id: userId },
       });
 
       if (!user) {
         throw new UnauthorizedException(CONFIG_MESSAGES.userNotFound);
       }
 
+      const accessToken = await this.generateJwtTokens(user);
+
       return {
         message: CONFIG_MESSAGES.tokenRefreshed,
-        accessToken: await this.generateJwtTokens(user),
+        accessToken,
       };
     } catch {
       throw new UnauthorizedException(CONFIG_MESSAGES.tokenInvalid);
@@ -178,9 +197,7 @@ export class AuthService {
   }
 
   async resetPwdSent(email: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await this.prismaService.user.findUnique({ where: { email } });
 
     if (!user) {
       throw new NotFoundException(CONFIG_MESSAGES.userNotFound);
@@ -191,30 +208,25 @@ export class AuthService {
       email: user.email,
     });
 
-    // Enviar o token por email
+    // Envio de email.
 
-    return {
-      message: CONFIG_MESSAGES.resetPasswordLinkSent,
-      resetToken,
-    };
+    return { message: CONFIG_MESSAGES.resetPasswordLinkSent, resetToken };
   }
 
   async resetPwdConf(resetToken: string, newPassword: string) {
     try {
-      const secret = this.configService.get('JWT_SECRET_KEY');
-      const key = createHash('sha256').update(secret).digest();
-      const { payload } = await jose.jwtDecrypt(resetToken, key);
+      const { payload } = await this.verifyResetToken(resetToken);
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-      await this.prisma.user.update({
-        where: { id: Number(payload.sub) },
+      const userId = Number(payload.sub);
+
+      await this.prismaService.user.update({
+        where: { id: userId },
         data: { password: hashedPassword },
       });
 
-      return {
-        message: CONFIG_MESSAGES.resetPasswordReseted,
-      };
+      return { message: CONFIG_MESSAGES.resetPasswordReseted };
     } catch (error) {
       throw new UnauthorizedException(CONFIG_MESSAGES.tokenInvalid);
     }
@@ -222,12 +234,12 @@ export class AuthService {
 
   async googleLogin(profile: any) {
     try {
-      let user = await this.prisma.user.findUnique({
+      let user = await this.prismaService.user.findUnique({
         where: { email: profile.email },
       });
 
       if (!user) {
-        user = await this.prisma.user.create({
+        user = await this.prismaService.user.create({
           data: {
             email: profile.email,
             firstName: profile.firstName,
