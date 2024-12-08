@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import * as jose from 'jose';
 import { createHash } from 'crypto';
 import { loginUserInput, registerUserInput } from './inputs/auth.inputs';
+import e from 'express';
 
 @Injectable()
 export class AuthService {
@@ -48,53 +49,46 @@ export class AuthService {
       .encrypt(key);
   }
 
-  async validateUser(email: string, password: string) {
+  async validateUser(email: string) {
     const user = await this.prismaService.user.findUnique({
       where: { email },
     });
 
-    if (!user) {
-      throw new UnauthorizedException(CONFIG_MESSAGES.invalidEmail);
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException(CONFIG_MESSAGES.invalidPassword);
-    }
-
-    if (!user.verified) {
-      throw new UnauthorizedException(CONFIG_MESSAGES.userNotVerified);
-    }
-
-    const { password: _, ...result } = user;
-    return result;
+    return user;
   }
 
   async login(loginUserInput: loginUserInput) {
     try {
-      const user = await this.validateUser(
-        loginUserInput.email,
-        loginUserInput.password,
-      );
-
-      const isGoogleProvider = await this.prismaService.user.findFirst({
-        where: {
-          provider: 'GOOGLE',
-          email: loginUserInput.email,
-        },
+      const user = await this.prismaService.user.findUnique({
+        where: { email: loginUserInput.email },
       });
 
-      if (isGoogleProvider) {
-        throw new UnauthorizedException(
-          'Sua conta foi criada com o Google, faça login com o Google',
-        );
+      if (!user) {
+        throw new UnauthorizedException(CONFIG_MESSAGES.invalidEmail);
       }
 
+      if (!user.verified) {
+        throw new UnauthorizedException(CONFIG_MESSAGES.userNotVerified);
+      }
+
+      if (user.provider === 'GOOGLE') {
+        throw new UnauthorizedException('Sua conta foi criada com o Google');
+      }
+
+      const isPasswordValid = await bcrypt.compare(
+        loginUserInput.password,
+        user.password,
+      );
+
+      if (!isPasswordValid) {
+        throw new UnauthorizedException(CONFIG_MESSAGES.invalidPassword);
+      }
+
+      const { password: _, ...result } = user;
       return {
         message: CONFIG_MESSAGES.userLogged,
-        accessToken: await this.generateJwtTokens(user),
-        refreshToken: await this.generateRefreshTokens(user),
+        accessToken: await this.generateJwtTokens(result),
+        refreshToken: await this.generateRefreshTokens(result),
       };
     } catch (error) {
       throw error;
@@ -102,50 +96,51 @@ export class AuthService {
   }
 
   async register(registerUserInput: registerUserInput) {
-    const { email, password } = registerUserInput;
+    try {
+      const { email, password } = registerUserInput;
 
-    const existingUser = await this.prismaService.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser && existingUser.verified) {
-      throw new UnauthorizedException(CONFIG_MESSAGES.userAllReady);
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    let user;
-
-    if (existingUser) {
-      user = await this.prismaService.user.update({
+      const user = await this.prismaService.user.findUnique({
         where: { email },
-        data: {
-          ...registerUserInput,
-          password: hashedPassword,
-          verified: false,
-        },
       });
-    } else {
-      user = await this.prismaService.user.create({
-        data: {
-          ...registerUserInput,
-          password: hashedPassword,
-          verified: false,
-        },
+
+      if (user && user.verified) {
+        throw new UnauthorizedException(CONFIG_MESSAGES.userAllReady);
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      if (user && !user.verified) {
+        await this.prismaService.user.update({
+          where: { email },
+          data: {
+            ...registerUserInput,
+            password: hashedPassword,
+          },
+        });
+      } else {
+        await this.prismaService.user.create({
+          data: {
+            ...registerUserInput,
+            password: hashedPassword,
+          },
+        });
+      }
+
+      const verificationToken = await this.generateJwtTokens({
+        id: user.id,
+        email: user.email,
       });
+
+      return {
+        message: CONFIG_MESSAGES.userCreated,
+        verificationToken,
+      };
+    } catch (error) {
+      throw error;
     }
-
-    const verificationToken = await this.generateJwtTokens({
-      id: user.id,
-      email: user.email,
-    });
-
-    return {
-      message: CONFIG_MESSAGES.userCreated,
-      verificationToken,
-    };
   }
 
-  async verifyUser(verifyToken: string) {
+  async verifyRegister(verifyToken: string) {
     try {
       const secret = this.configService.get('JWT_SECRET_KEY');
       const key = createHash('sha256').update(secret).digest();
@@ -223,7 +218,7 @@ export class AuthService {
 
       await this.prismaService.user.update({
         where: { id: userId },
-        data: { password: hashedPassword },
+        data: { password: hashedPassword, provider: 'CREDENTIALS' },
       });
 
       return { message: CONFIG_MESSAGES.resetPasswordReseted };
@@ -247,6 +242,13 @@ export class AuthService {
             provider: 'GOOGLE',
             verified: true,
           },
+        });
+      } else {
+        const userId = user.id;
+
+        await this.prismaService.user.update({
+          where: { id: userId },
+          data: { provider: 'GOOGLE' },
         });
       }
 

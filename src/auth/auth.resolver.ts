@@ -35,8 +35,8 @@ export class AuthResolver {
 
   @Public()
   @Mutation(() => LoginResponse)
-  async verifyUser(@Args('verificationToken') verificationToken: string) {
-    return this.authService.verifyUser(verificationToken);
+  async verifyRegister(@Args('verificationToken') verificationToken: string) {
+    return this.authService.verifyRegister(verificationToken);
   }
 
   @Public()
