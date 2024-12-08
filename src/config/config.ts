@@ -19,7 +19,7 @@ export const CONFIG_MESSAGES = {
   userNotFound: 'Usuário não encontrado.',
   userIdNotFound: 'Nenhum usuário com este ID.',
   userNotVerified: 'Usuário não verificado.',
-  userNoPermission: 'Usuário sem permissão.',
+  userNoPermission: 'O usuário não tem privilégios de administrador.',
 
   // AUTH SUCCESS
   loginLinkSent: 'Link de acesso enviado.',
