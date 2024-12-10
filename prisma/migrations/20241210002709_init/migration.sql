@@ -1,14 +1,18 @@
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN');
 
+-- CreateEnum
+CREATE TYPE "Provider" AS ENUM ('CREDENTIALS', 'GOOGLE');
+
 -- CreateTable
 CREATE TABLE "User" (
-    "id" SERIAL NOT NULL,
     "role" "Role" NOT NULL DEFAULT 'USER',
+    "provider" "Provider" NOT NULL DEFAULT 'CREDENTIALS',
+    "id" SERIAL NOT NULL,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
+    "password" TEXT,
     "whatsapp" TEXT,
     "verified" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -109,8 +109,9 @@ export class AuthService {
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
+      let createdOrUpdatedUser;
       if (user && !user.verified) {
-        await this.prismaService.user.update({
+        createdOrUpdatedUser = await this.prismaService.user.update({
           where: { email },
           data: {
             ...registerUserInput,
@@ -118,7 +119,7 @@ export class AuthService {
           },
         });
       } else {
-        await this.prismaService.user.create({
+        createdOrUpdatedUser = await this.prismaService.user.create({
           data: {
             ...registerUserInput,
             password: hashedPassword,
@@ -127,8 +128,8 @@ export class AuthService {
       }
 
       const verificationToken = await this.generateJwtTokens({
-        id: user.id,
-        email: user.email,
+        id: createdOrUpdatedUser.id,
+        email: createdOrUpdatedUser.email,
       });
 
       return {
