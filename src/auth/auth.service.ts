@@ -10,7 +10,6 @@ import { ConfigService } from '@nestjs/config';
 import * as jose from 'jose';
 import { createHash } from 'crypto';
 import { loginUserInput, registerUserInput } from './inputs/auth.inputs';
-import e from 'express';
 
 @Injectable()
 export class AuthService {
