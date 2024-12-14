@@ -30,6 +30,7 @@ export class AuthService {
     return await new jose.EncryptJWT({
       sub: user.id,
       role: user.role,
+      provider: user.provider,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,

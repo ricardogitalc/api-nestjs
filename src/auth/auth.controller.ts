@@ -3,15 +3,14 @@ import {
   Get,
   Post,
   Body,
-  Logger,
   Req,
   UseGuards,
+  Res,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Public } from 'src/common/decorators/public.decorator';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
-import { CONFIG_MESSAGES } from 'src/config/config';
 import {
   loginUserInput,
   registerUserInput,
@@ -25,7 +24,6 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
-    private readonly logger: Logger,
   ) {}
 
   @Public()
@@ -53,13 +51,13 @@ export class AuthController {
   }
 
   @Public()
-  @Post('reset-password')
+  @Post('reset-pwd')
   async resetPwdSent(@Body() resetPwdSentInput: resetPwdSentInput) {
     return this.authService.resetPwdSent(resetPwdSentInput.email);
   }
 
   @Public()
-  @Post('reset-password/confirm')
+  @Post('reset-pwd/confirm')
   async resetPwdConf(@Body() resetPwdConfInput: resetPwdConfInput) {
     return this.authService.resetPwdConf(
       resetPwdConfInput.resetToken,
@@ -75,15 +73,31 @@ export class AuthController {
   @Public()
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req) {
-    const { accessToken, refreshToken } = await this.authService.googleLogin(
-      req.user,
-    );
+  async googleAuthRedirect(@Req() req, @Res() res) {
+    try {
+      const { accessToken, refreshToken } = await this.authService.googleLogin(
+        req.user,
+      );
 
-    return {
-      message: CONFIG_MESSAGES.userLogged,
-      accessToken,
-      refreshToken,
-    };
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+      });
+
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+      });
+
+      return res.redirect(
+        `${this.configService.get('FRONTEND_URL')}/auth/callback`,
+      );
+    } catch (error) {
+      return res.redirect(`${this.configService.get('FRONTEND_URL')}/entrar`);
+    }
   }
 }
