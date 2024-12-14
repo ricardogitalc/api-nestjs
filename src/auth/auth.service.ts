@@ -29,7 +29,14 @@ export class AuthService {
     const key = createHash('sha256').update(secret).digest();
     return await new jose.EncryptJWT({
       sub: user.id,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
+      whatsapp: user.whatsapp,
+      verified: user.verified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     })
       .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
       .setExpirationTime(JWT_TIMES.ACCESS_TOKEN)

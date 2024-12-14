@@ -42,7 +42,7 @@ export class UsersService {
     updateUserInput: Partial<Omit<UpdateUserInput, 'id'>>,
   ) {
     const user = await this.prisma.user.findUnique({
-      where: { id },
+      where: { id: Number(id) },
     });
 
     if (!user) {
@@ -50,7 +50,7 @@ export class UsersService {
     }
 
     return this.prisma.user.update({
-      where: { id },
+      where: { id: Number(id) },
       data: updateUserInput,
     });
   }
