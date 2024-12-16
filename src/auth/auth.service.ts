@@ -44,12 +44,11 @@ export class AuthService {
       .encrypt(key);
   }
 
-  async generateRefreshTokens(user: any) {
+  async generateRefreshTokens(id: number) {
     const secret = this.configService.get('REFRESH_SECRET_KEY');
     const key = createHash('sha256').update(secret).digest();
     return await new jose.EncryptJWT({
-      sub: user.id,
-      email: user.email,
+      sub: id.toString(),
     })
       .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
       .setExpirationTime(JWT_TIMES.REFRESH_TOKEN)
@@ -92,10 +91,13 @@ export class AuthService {
       }
 
       const { password: _, ...result } = user;
+      const accessToken = await this.generateJwtTokens(result);
+      const refreshToken = await this.generateRefreshTokens(result.id);
+
       return {
         message: CONFIG_MESSAGES.userLogged,
-        accessToken: await this.generateJwtTokens(result),
-        refreshToken: await this.generateRefreshTokens(result),
+        accessToken,
+        refreshToken,
       };
     } catch (error) {
       throw error;
@@ -150,9 +152,7 @@ export class AuthService {
 
   async verifyRegister(verifyToken: string) {
     try {
-      const secret = this.configService.get('JWT_SECRET_KEY');
-      const key = createHash('sha256').update(secret).digest();
-      const { payload } = await jose.jwtDecrypt(verifyToken, key);
+      const { payload } = await this.verifyResetToken(verifyToken);
       const userId = Number(payload.sub);
 
       const user = await this.prismaService.user.update({
@@ -161,7 +161,7 @@ export class AuthService {
       });
 
       const accessToken = await this.generateJwtTokens(user);
-      const refreshToken = await this.generateRefreshTokens(user);
+      const refreshToken = await this.generateRefreshTokens(user.id);
 
       return {
         message: CONFIG_MESSAGES.userVerified,
@@ -177,25 +177,32 @@ export class AuthService {
     try {
       const secret = this.configService.get('REFRESH_SECRET_KEY');
       const key = createHash('sha256').update(secret).digest();
-      const { payload } = await jose.jwtDecrypt(refreshToken, key);
-      const userId = Number(payload.sub);
 
-      const user = await this.prismaService.user.findUnique({
-        where: { id: userId },
-      });
+      try {
+        const { payload } = await jose.jwtDecrypt(refreshToken, key);
+        const userId = Number(payload.sub);
 
-      if (!user) {
-        throw new UnauthorizedException(CONFIG_MESSAGES.userNotFound);
+        const user = await this.prismaService.user.findUnique({
+          where: { id: userId },
+        });
+
+        if (!user) {
+          throw new UnauthorizedException('Usuário não encontrado');
+        }
+
+        const accessToken = await this.generateJwtTokens(user);
+        const newRefreshToken = await this.generateRefreshTokens(user.id);
+
+        return {
+          message: 'Token atualizado com sucesso',
+          accessToken,
+          refreshToken: newRefreshToken,
+        };
+      } catch (error) {
+        throw new UnauthorizedException('Refresh token expirado ou inválido');
       }
-
-      const accessToken = await this.generateJwtTokens(user);
-
-      return {
-        message: CONFIG_MESSAGES.tokenRefreshed,
-        accessToken,
-      };
-    } catch {
-      throw new UnauthorizedException(CONFIG_MESSAGES.tokenInvalid);
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -206,9 +213,12 @@ export class AuthService {
       throw new NotFoundException(CONFIG_MESSAGES.userNotFound);
     }
 
+    if (!user.verified) {
+      throw new UnauthorizedException(CONFIG_MESSAGES.userNotVerified);
+    }
+
     const resetToken = await this.generateJwtTokens({
       id: user.id,
-      email: user.email,
     });
 
     // Envio de email.
@@ -260,9 +270,12 @@ export class AuthService {
         });
       }
 
+      const accessToken = await this.generateJwtTokens(user);
+      const refreshToken = await this.generateRefreshTokens(user.id);
+
       return {
-        accessToken: await this.generateJwtTokens(user),
-        refreshToken: await this.generateRefreshTokens(user),
+        accessToken,
+        refreshToken,
       };
     } catch (error) {
       throw new UnauthorizedException('Erro na autenticação do Google');

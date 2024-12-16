@@ -1,4 +1,3 @@
-import { InputType, Field, Int } from '@nestjs/graphql';
 import {
   IsString,
   IsEmail,
@@ -8,23 +7,18 @@ import {
   IsInt,
 } from 'class-validator';
 
-@InputType()
 export class CreateUserInput {
-  @Field()
   @IsString()
   @MinLength(2, { message: 'O nome deve ter no mínimo 2 caracteres' })
   firstName: string;
 
-  @Field()
   @IsString()
   @MinLength(2, { message: 'O sobrenome deve ter no mínimo 2 caracteres' })
   lastName: string;
 
-  @Field()
   @IsEmail({}, { message: 'Email inválido' })
   email: string;
 
-  @Field()
   @IsString()
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#@$!%*?&])[A-Za-z\d#@$!%*?&]{8,}$/,
@@ -34,7 +28,6 @@ export class CreateUserInput {
   )
   password: string;
 
-  @Field()
   @IsOptional()
   @Matches(/^[1-9]{2}[9]{1}[0-9]{8}$/, {
     message: 'Número de WhatsApp deve estar no formato: 11999999999',
@@ -42,25 +35,20 @@ export class CreateUserInput {
   whatsapp?: string;
 }
 
-@InputType()
 export class UpdateUserInput {
-  @Field(() => Int)
   @IsInt()
   id: number;
 
-  @Field({ nullable: true })
   @IsOptional()
   @IsString()
   @MinLength(2, { message: 'O nome deve ter no mínimo 2 caracteres' })
   firstName?: string;
 
-  @Field({ nullable: true })
   @IsOptional()
   @IsString()
   @MinLength(2, { message: 'O sobrenome deve ter no mínimo 2 caracteres' })
   lastName?: string;
 
-  @Field({ nullable: true })
   @IsOptional()
   @IsString()
   @Matches(
@@ -71,7 +59,6 @@ export class UpdateUserInput {
   )
   password?: string;
 
-  @Field({ nullable: true })
   @IsOptional()
   @Matches(/^[1-9]{2}[9]{1}[0-9]{8}$/, {
     message: 'Número de WhatsApp deve estar no formato: 11999999999',
@@ -79,21 +66,17 @@ export class UpdateUserInput {
   whatsapp?: string;
 }
 
-@InputType()
 export class UpdateProfileInput {
-  @Field({ nullable: true })
   @IsOptional()
   @IsString()
   @MinLength(2, { message: 'O nome deve ter no mínimo 2 caracteres' })
   firstName?: string;
 
-  @Field({ nullable: true })
   @IsOptional()
   @IsString()
   @MinLength(2, { message: 'O sobrenome deve ter no mínimo 2 caracteres' })
   lastName?: string;
 
-  @Field({ nullable: true })
   @IsOptional()
   @IsString()
   @Matches(
@@ -104,7 +87,6 @@ export class UpdateProfileInput {
   )
   password?: string;
 
-  @Field({ nullable: true })
   @IsOptional()
   @Matches(/^[1-9]{2}[9]{1}[0-9]{8}$/, {
     message: 'Número de WhatsApp deve estar no formato: 11999999999',

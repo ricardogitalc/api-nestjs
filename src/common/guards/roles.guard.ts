@@ -5,7 +5,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { GqlExecutionContext } from '@nestjs/graphql';
 import { Role } from '@prisma/client';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -28,8 +27,8 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const gqlContext = GqlExecutionContext.create(context);
-    const { user } = gqlContext.getContext().req;
+    const request = context.switchToHttp().getRequest();
+    const { user } = request;
 
     if (!user) {
       throw new UnauthorizedException(CONFIG_MESSAGES.tokenNotSent);

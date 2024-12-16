@@ -15,36 +15,17 @@ export class LoggerInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
-    const { method, url, body, headers } = request;
+    const { method, url } = request;
     const startTime = Date.now();
 
     return next.handle().pipe(
-      tap((response) => {
-        const endTime = Date.now();
-        const responseTime = endTime - startTime;
-
-        this.logger.log(
-          `[SUCCESS] ${method} ${url} ${responseTime}ms\n` +
-            `Headers: ${JSON.stringify(headers)}\n` +
-            `Request Body: ${JSON.stringify(body)}\n` +
-            `Response: ${JSON.stringify(response)}`,
-        );
+      tap(() => {
+        const responseTime = Date.now() - startTime;
+        this.logger.log(`✅ [SUCCESS] ${method} ${url} ${responseTime}ms`);
       }),
       catchError((error) => {
-        const endTime = Date.now();
-        const responseTime = endTime - startTime;
-
-        this.logger.error(
-          `[ERROR] ${method} ${url} ${responseTime}ms\n` +
-            `Headers: ${JSON.stringify(headers)}\n` +
-            `Request Body: ${JSON.stringify(body)}\n` +
-            `Error: ${JSON.stringify({
-              message: error.message,
-              statusCode: error.status || error.statusCode,
-              response: error.response,
-            })}`,
-        );
-
+        const responseTime = Date.now() - startTime;
+        this.logger.error(`❌ [ERROR] ${method} ${url} ${responseTime}ms`);
         return throwError(() => error);
       }),
     );

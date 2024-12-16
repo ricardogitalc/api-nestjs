@@ -34,8 +34,8 @@ async function bootstrap() {
   );
 
   app.useGlobalInterceptors(new LoggerInterceptor());
-  app.useGlobalInterceptors(new ResponseInterceptor());
-  app.useGlobalFilters(new GlobalExceptionFilter());
+  // app.useGlobalInterceptors(new ResponseInterceptor());
+  // app.useGlobalFilters(new GlobalExceptionFilter());
 
   await app.listen(8000);
 }

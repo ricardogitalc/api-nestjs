@@ -46,8 +46,11 @@ export class AuthController {
 
   @Public()
   @Post('refresh')
-  async refreshToken(@Body() refreshTokenInput: refreshTokenInput) {
-    return this.authService.refreshToken(refreshTokenInput.refreshToken);
+  async refresh(@Body() refreshTokenInput: refreshTokenInput) {
+    const { accessToken, refreshToken } = await this.authService.refreshToken(
+      refreshTokenInput.refreshToken,
+    );
+    return { accessToken, refreshToken };
   }
 
   @Public()
@@ -75,18 +78,9 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res) {
     try {
-      const { accessToken, refreshToken } = await this.authService.googleLogin(
-        req.user,
-      );
+      const { accessToken } = await this.authService.googleLogin(req.user);
 
       res.cookie('accessToken', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-      });
-
-      res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',

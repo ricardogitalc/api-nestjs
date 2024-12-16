@@ -8,17 +8,17 @@ datasource db {
 }
 
 model User {
-  role      Role     @default(USER)
-  provider  Provider @default(CREDENTIALS)
-  id        Int      @id @default(autoincrement())
-  firstName String
-  lastName  String
-  email     String   @unique
-  password  String?
-  whatsapp  String?
-  verified  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role          Role          @default(USER)
+  provider      Provider      @default(CREDENTIALS)
+  id            Int           @id @default(autoincrement())
+  firstName     String
+  lastName      String
+  email         String        @unique
+  password      String?
+  whatsapp      String?
+  verified      Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 enum Role {
