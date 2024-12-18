@@ -78,7 +78,9 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res) {
     try {
-      const { accessToken } = await this.authService.googleLogin(req.user);
+      const { accessToken, refreshToken } = await this.authService.googleLogin(
+        req.user,
+      );
 
       res.cookie('accessToken', accessToken, {
         httpOnly: true,
@@ -87,9 +89,14 @@ export class AuthController {
         path: '/',
       });
 
-      return res.redirect(
-        `${this.configService.get('FRONTEND_URL')}/auth/callback`,
-      );
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+      });
+
+      return res.redirect(`${this.configService.get('FRONTEND_URL')}/callback`);
     } catch (error) {
       return res.redirect(`${this.configService.get('FRONTEND_URL')}/entrar`);
     }
