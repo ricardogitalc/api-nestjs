@@ -47,6 +47,6 @@ export const CONFIG_MESSAGES = {
 } as const;
 
 export const JWT_TIMES = {
-  ACCESS_TOKEN: '5s',
-  REFRESH_TOKEN: '1h',
+  ACCESS_TOKEN: '15m',
+  REFRESH_TOKEN: '1d',
 } as const;

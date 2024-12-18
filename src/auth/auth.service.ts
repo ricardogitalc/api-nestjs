@@ -8,7 +8,6 @@ import * as bcrypt from 'bcrypt';
 import { CONFIG_MESSAGES, JWT_TIMES } from 'src/config/config';
 import { ConfigService } from '@nestjs/config';
 import * as jose from 'jose';
-import { createHash } from 'crypto';
 import { loginUserInput, registerUserInput } from './inputs/auth.inputs';
 
 @Injectable()
@@ -18,15 +17,24 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
+  private generateKey(secret: string): Uint8Array {
+    const encoder = new TextEncoder();
+    const keyBytes = encoder.encode(secret);
+    const buffer = new Uint8Array(32);
+    buffer.set(keyBytes.slice(0, 32));
+
+    return buffer;
+  }
+
   private async verifyResetToken(resetToken: string) {
     const secret = this.configService.get('JWT_SECRET_KEY');
-    const key = createHash('sha256').update(secret).digest();
+    const key = this.generateKey(secret);
     return jose.jwtDecrypt(resetToken, key);
   }
 
   async generateJwtTokens(user: any) {
     const secret = this.configService.get('JWT_SECRET_KEY');
-    const key = createHash('sha256').update(secret).digest();
+    const key = this.generateKey(secret);
     return await new jose.EncryptJWT({
       sub: user.id,
       role: user.role,
@@ -46,7 +54,7 @@ export class AuthService {
 
   async generateRefreshTokens(id: number) {
     const secret = this.configService.get('REFRESH_SECRET_KEY');
-    const key = createHash('sha256').update(secret).digest();
+    const key = this.generateKey(secret);
     return await new jose.EncryptJWT({
       sub: id.toString(),
     })
@@ -176,7 +184,7 @@ export class AuthService {
   async refreshToken(refreshToken: string) {
     try {
       const secret = this.configService.get('REFRESH_SECRET_KEY');
-      const key = createHash('sha256').update(secret).digest();
+      const key = this.generateKey(secret);
 
       try {
         const { payload } = await jose.jwtDecrypt(refreshToken, key);
