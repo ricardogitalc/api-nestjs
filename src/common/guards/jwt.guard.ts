@@ -6,7 +6,6 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import * as jose from 'jose';
-import { createHash } from 'crypto';
 import { CONFIG_MESSAGES } from 'src/config/config';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { Reflector } from '@nestjs/core';
@@ -20,18 +19,26 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     super();
   }
 
-  getRequest(context: ExecutionContext) {
-    return context.switchToHttp().getRequest();
+  private generateKey(secret: string): Uint8Array {
+    const encoder = new TextEncoder();
+    const keyBytes = encoder.encode(secret);
+    const buffer = new Uint8Array(32);
+    buffer.set(keyBytes.slice(0, 32));
+    return buffer;
   }
 
   protected async validateToken(token: string) {
     try {
       const secret = this.configService.get<string>('JWT_SECRET_KEY');
-      const key = createHash('sha256').update(secret).digest();
+      const key = this.generateKey(secret);
       return await jose.jwtDecrypt(token, key);
-    } catch {
+    } catch (error) {
       throw new UnauthorizedException('Token inválido ou expirado');
     }
+  }
+
+  getRequest(context: ExecutionContext) {
+    return context.switchToHttp().getRequest();
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
