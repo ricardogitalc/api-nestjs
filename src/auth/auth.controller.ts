@@ -39,7 +39,7 @@ export class AuthController {
   }
 
   @Public()
-  @Post('verify')
+  @Post('verify-register')
   async verifyRegister(@Body('verificationToken') verificationToken: string) {
     return this.authService.verifyRegister(verificationToken);
   }

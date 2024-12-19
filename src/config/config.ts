@@ -6,10 +6,10 @@ export const CONFIG_MESSAGES = {
   invalidPassword: 'Senha incorreta.',
 
   // USER SUCCESS
-  userCreated: 'Usuário criado.',
+  userCreated: 'Usuário criado, verifique seu email.',
   userUpdated: 'Usuário atualizado.',
   userDeleted: 'Usuário deletado.',
-  userVerified: 'Usuário verificado.',
+  userVerified: 'Usuário verificado, entre na sua conta.',
   userLogged: 'Login realizado.',
   userLoggedOut: 'Logout realizado.',
 
@@ -47,6 +47,6 @@ export const CONFIG_MESSAGES = {
 } as const;
 
 export const JWT_TIMES = {
-  ACCESS_TOKEN: '5s',
-  REFRESH_TOKEN: '20s',
+  ACCESS_TOKEN: '1m',
+  REFRESH_TOKEN: '7d',
 } as const;

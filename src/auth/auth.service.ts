@@ -9,12 +9,15 @@ import { CONFIG_MESSAGES, JWT_TIMES } from 'src/config/config';
 import { ConfigService } from '@nestjs/config';
 import * as jose from 'jose';
 import { loginUserInput, registerUserInput } from './inputs/auth.inputs';
+import { ResendService } from '../email/resend-client';
+import { EMAIL_TEMPLATES } from '../email/email.constants';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prismaService: PrismaService,
     private configService: ConfigService,
+    private resendService: ResendService,
   ) {}
 
   private generateKey(secret: string): Uint8Array {
@@ -149,6 +152,17 @@ export class AuthService {
         email: createdOrUpdatedUser.email,
       });
 
+      const verificationLink = `${this.configService.get('FRONTEND_URL')}/verificar-cadastro?token=${verificationToken}`;
+
+      await this.resendService.sendEmail(
+        email,
+        'Verificação de Conta',
+        EMAIL_TEMPLATES.REGISTER_VERIFICATION(
+          createdOrUpdatedUser.firstName,
+          verificationLink,
+        ),
+      );
+
       return {
         message: CONFIG_MESSAGES.userCreated,
         verificationToken,
@@ -163,18 +177,13 @@ export class AuthService {
       const { payload } = await this.verifyResetToken(verifyToken);
       const userId = Number(payload.sub);
 
-      const user = await this.prismaService.user.update({
+      await this.prismaService.user.update({
         where: { id: userId },
         data: { verified: true },
       });
 
-      const accessToken = await this.generateJwtTokens(user);
-      const refreshToken = await this.generateRefreshTokens(user.id);
-
       return {
         message: CONFIG_MESSAGES.userVerified,
-        accessToken,
-        refreshToken,
       };
     } catch (error) {
       throw new UnauthorizedException(CONFIG_MESSAGES.tokenInvalid);
@@ -229,7 +238,13 @@ export class AuthService {
       id: user.id,
     });
 
-    // Envio de email.
+    const resetLink = `${this.configService.get('FRONTEND_URL')}/redefinir-senha?token=${resetToken}`;
+
+    await this.resendService.sendEmail(
+      email,
+      'Redefinição de Senha',
+      EMAIL_TEMPLATES.RESET_PASSWORD(user.firstName, resetLink),
+    );
 
     return { message: CONFIG_MESSAGES.resetPasswordLinkSent, resetToken };
   }
