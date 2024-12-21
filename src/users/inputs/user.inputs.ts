@@ -5,6 +5,8 @@ import {
   IsOptional,
   Matches,
   IsInt,
+  Length,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateUserInput {
@@ -30,13 +32,9 @@ export class CreateUserInput {
 
   @IsOptional()
   @Matches(/^[1-9]{2}[9]{1}[0-9]{8}$/, {
-    message: 'Número de WhatsApp deve estar no formato: 11999999999',
+    message: 'O número deve estar no formato: 11999999999',
   })
-  whatsapp?: string;
-
-  @IsOptional()
-  @IsString()
-  profileUrl?: string;
+  phone: string;
 }
 
 export class UpdateUserInput {
@@ -65,9 +63,9 @@ export class UpdateUserInput {
 
   @IsOptional()
   @Matches(/^[1-9]{2}[9]{1}[0-9]{8}$/, {
-    message: 'Número de WhatsApp deve estar no formato: 11999999999',
+    message: 'O número deve estar no formato: 11999999999',
   })
-  whatsapp?: string;
+  phone?: string;
 
   @IsOptional()
   @IsString()
@@ -78,11 +76,13 @@ export class UpdateProfileInput {
   @IsOptional()
   @IsString()
   @MinLength(2, { message: 'O nome deve ter no mínimo 2 caracteres' })
+  @MaxLength(50, { message: 'O nome deve ter no máximo 100 caracteres' })
   firstName?: string;
 
   @IsOptional()
   @IsString()
   @MinLength(2, { message: 'O sobrenome deve ter no mínimo 2 caracteres' })
+  @MaxLength(50, { message: 'O sobrenome deve ter no máximo 100 caracteres' })
   lastName?: string;
 
   @IsOptional()
@@ -96,12 +96,54 @@ export class UpdateProfileInput {
   password?: string;
 
   @IsOptional()
+  @IsString()
+  profileUrl?: string;
+
+  @IsOptional()
   @Matches(/^[1-9]{2}[9]{1}[0-9]{8}$/, {
-    message: 'Número de WhatsApp deve estar no formato: 11999999999',
+    message: 'O número deve estar no formato: 11999999999',
   })
-  whatsapp?: string;
+  phone?: string;
 
   @IsOptional()
   @IsString()
-  profileUrl?: string;
+  @Matches(/^\d{3}\.\d{3}\.\d{3}\-\d{2}$/, {
+    message: 'CPF inválido. Use o formato: 123.456.789-00',
+  })
+  cpf?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{5}-\d{3}$/, {
+    message: 'CEP inválido. Use o formato: 12345-678',
+  })
+  zipCode?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(2, { message: 'A cidade deve ter no mínimo 2 caracteres' })
+  @MaxLength(100, { message: 'A cidade deve ter no máximo 100 caracteres' })
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(2, 2, { message: 'O estado deve ter 2 caracteres (ex: SP, RJ, MG)' })
+  state?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(3, { message: 'O endereço deve ter no mínimo 3 caracteres' })
+  @MaxLength(150, { message: 'O endereço deve ter no máximo 150 caracteres' })
+  anddress?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(2, { message: 'O bairro deve ter no mínimo 2 caracteres' })
+  @MaxLength(100, { message: 'O bairro deve ter no máximo 100 caracteres' })
+  district?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10, { message: 'O número deve ter no máximo 10 caracteres' })
+  number?: string;
 }

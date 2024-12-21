@@ -1,12 +1,30 @@
+export enum Role {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+}
+
+export enum Provider {
+  CREDENTIALS = 'CREDENTIALS',
+  GOOGLE = 'GOOGLE',
+}
+
 export class User {
+  role: Role;
+  provider: Provider;
   id: number;
-  role: string;
   firstName: string;
   lastName: string;
   email: string;
-  password: string;
-  whatsapp?: string;
+  password?: string;
   profileUrl?: string;
+  phone?: string;
+  cpf?: String;
+  zipCode?: String;
+  city?: String;
+  state?: String;
+  anddress?: String;
+  district?: String;
+  number?: String;
   verified: boolean;
   createdAt: Date;
   updatedAt: Date;

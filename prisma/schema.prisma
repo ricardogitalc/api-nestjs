@@ -15,8 +15,15 @@ model User {
   lastName      String
   email         String        @unique
   password      String?
-  whatsapp      String?
   profileUrl    String?
+  phone         String?
+  cpf           String?
+  zipCode       String?
+  city          String?
+  state         String?
+  anddress      String?
+  district  String?
+  number        String?
   verified      Boolean       @default(false)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt

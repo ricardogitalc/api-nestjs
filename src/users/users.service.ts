@@ -16,8 +16,7 @@ export class UsersService {
         lastName: createUserInput.lastName,
         email: createUserInput.email,
         password: hashedPassword,
-        whatsapp: createUserInput.whatsapp,
-        profileUrl: createUserInput.profileUrl,
+        phone: createUserInput.phone,
       },
     });
   }

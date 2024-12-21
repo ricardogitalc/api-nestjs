@@ -32,9 +32,9 @@ export class registerUserInput {
   password: string;
   @IsOptional()
   @Matches(/^[1-9]{2}[9]{1}[0-9]{8}$/, {
-    message: 'Número de WhatsApp deve estar no formato: 11999999999',
+    message: 'O número deve estar no formato: 11999999999',
   })
-  whatsapp?: string;
+  phone?: string;
 }
 
 export class refreshTokenInput {

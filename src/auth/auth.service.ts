@@ -45,7 +45,7 @@ export class AuthService {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      whatsapp: user.whatsapp,
+      phone: user.phone,
       profileUrl: user.profileUrl,
       verified: user.verified,
       createdAt: user.createdAt,
@@ -278,9 +278,9 @@ export class AuthService {
       if (!user) {
         user = await this.prismaService.user.create({
           data: {
-            email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName,
+            email: profile.email,
             profileUrl: profile.profileUrl,
             provider: 'GOOGLE',
             verified: true,
