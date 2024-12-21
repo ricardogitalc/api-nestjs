@@ -46,6 +46,7 @@ export class AuthService {
       lastName: user.lastName,
       email: user.email,
       whatsapp: user.whatsapp,
+      profileUrl: user.profileUrl,
       verified: user.verified,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
@@ -280,6 +281,7 @@ export class AuthService {
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName,
+            profileUrl: profile.profileUrl,
             provider: 'GOOGLE',
             verified: true,
           },
@@ -289,7 +291,7 @@ export class AuthService {
 
         await this.prismaService.user.update({
           where: { id: userId },
-          data: { provider: 'GOOGLE' },
+          data: { profileUrl: profile.profileUrl, provider: 'GOOGLE' },
         });
       }
 

@@ -6,6 +6,7 @@ export class User {
   email: string;
   password: string;
   whatsapp?: string;
+  profileUrl?: string;
   verified: boolean;
   createdAt: Date;
   updatedAt: Date;

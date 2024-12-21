@@ -33,6 +33,10 @@ export class CreateUserInput {
     message: 'Número de WhatsApp deve estar no formato: 11999999999',
   })
   whatsapp?: string;
+
+  @IsOptional()
+  @IsString()
+  profileUrl?: string;
 }
 
 export class UpdateUserInput {
@@ -64,6 +68,10 @@ export class UpdateUserInput {
     message: 'Número de WhatsApp deve estar no formato: 11999999999',
   })
   whatsapp?: string;
+
+  @IsOptional()
+  @IsString()
+  profileUrl?: string;
 }
 
 export class UpdateProfileInput {
@@ -92,4 +100,8 @@ export class UpdateProfileInput {
     message: 'Número de WhatsApp deve estar no formato: 11999999999',
   })
   whatsapp?: string;
+
+  @IsOptional()
+  @IsString()
+  profileUrl?: string;
 }
