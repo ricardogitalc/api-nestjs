@@ -1,3 +1,8 @@
+export const JWT_TIMES = {
+  ACCESS_TOKEN: '15m',
+  REFRESH_TOKEN: '7d',
+} as const;
+
 export const CONFIG_MESSAGES = {
   tokenRefreshed: 'Acesso renovado com sucesso.',
   tokenInvalid: 'Token inválido ou expirado.',
@@ -44,9 +49,4 @@ export const CONFIG_MESSAGES = {
   // RESET PASSWORD
   resetPasswordReseted: 'Senha redefinida com sucesso.',
   resetPasswordLinkSent: 'Link de redefinição enviado.',
-} as const;
-
-export const JWT_TIMES = {
-  ACCESS_TOKEN: '1m',
-  REFRESH_TOKEN: '7d',
 } as const;

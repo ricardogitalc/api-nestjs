@@ -19,13 +19,16 @@ export class LoggerInterceptor implements NestInterceptor {
     const startTime = Date.now();
 
     return next.handle().pipe(
-      tap(() => {
+      tap((response) => {
         const responseTime = Date.now() - startTime;
         this.logger.log(`✅ [SUCCESS] ${method} ${url} ${responseTime}ms`);
       }),
       catchError((error) => {
         const responseTime = Date.now() - startTime;
-        this.logger.error(`❌ [ERROR] ${method} ${url} ${responseTime}ms`);
+        this.logger.error(
+          `❌ [ERROR] ${method} ${url} ${responseTime}ms - ${error.message}`,
+          error.stack,
+        );
         return throwError(() => error);
       }),
     );
