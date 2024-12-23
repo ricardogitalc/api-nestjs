@@ -1,8 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CONFIG_MESSAGES } from 'src/config/config';
-import { CreateUserInput, UpdateUserInput } from './inputs/user.inputs';
+import {
+  CreateUserInput,
+  UpdateUserInput,
+  UpdateProfileInput,
+} from './inputs/user.inputs';
 
 @Injectable()
 export class UsersService {
@@ -67,5 +75,36 @@ export class UsersService {
     return this.prisma.user.delete({
       where: { id },
     });
+  }
+
+  async updateUserProfile(
+    userId: number,
+    updateProfileInput: UpdateProfileInput,
+  ) {
+    if (updateProfileInput.currentPassword && updateProfileInput.newPassword) {
+      const currentUser = await this.getUserById(userId);
+      const isPasswordValid = await bcrypt.compare(
+        updateProfileInput.currentPassword,
+        currentUser.password,
+      );
+
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('A senha atual está incorreta');
+      }
+
+      const hashedNewPassword = await bcrypt.hash(
+        updateProfileInput.newPassword,
+        10,
+      );
+
+      const { currentPassword, newPassword, ...restInput } = updateProfileInput;
+      return this.updateUserById(userId, {
+        ...restInput,
+        password: hashedNewPassword,
+      });
+    }
+
+    const { currentPassword, newPassword, ...updateData } = updateProfileInput;
+    return this.updateUserById(userId, updateData);
   }
 }

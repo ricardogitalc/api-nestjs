@@ -39,14 +39,21 @@ export class AuthService {
     const secret = this.configService.get('JWT_SECRET_KEY');
     const key = this.generateKey(secret);
     return await new jose.EncryptJWT({
-      sub: user.id,
       role: user.role,
       provider: user.provider,
+      sub: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      phone: user.phone,
       profileUrl: user.profileUrl,
+      phone: user.phone,
+      cpf: user.cpf,
+      zipCode: user.zipCode,
+      city: user.city,
+      state: user.state,
+      address: user.address,
+      district: user.district,
+      number: user.number,
       verified: user.verified,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,

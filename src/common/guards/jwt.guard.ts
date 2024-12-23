@@ -59,6 +59,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
 
     const token = authHeader.split(' ')[1];
+
     const { payload } = await this.validateToken(token);
 
     request.user = {

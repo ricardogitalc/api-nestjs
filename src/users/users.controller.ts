@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Put,
   Delete,
   Body,
   Param,
@@ -30,11 +29,7 @@ export class UsersController {
     @CurrentUser() user: { sub: number },
     @Body(new ValidationPipe()) updateProfileInput: UpdateProfileInput,
   ) {
-    if (updateProfileInput.password) {
-      const hashedPassword = await bcrypt.hash(updateProfileInput.password, 10);
-      updateProfileInput.password = hashedPassword;
-    }
-    return this.usersService.updateUserById(user.sub, updateProfileInput);
+    return this.usersService.updateUserProfile(user.sub, updateProfileInput);
   }
 
   @Delete('profile')

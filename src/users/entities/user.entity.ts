@@ -22,7 +22,7 @@ export class User {
   zipCode?: String;
   city?: String;
   state?: String;
-  anddress?: String;
+  address?: String;
   district?: String;
   number?: String;
   verified: boolean;
