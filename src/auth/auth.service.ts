@@ -97,7 +97,7 @@ export class AuthService {
       }
 
       if (user.provider === 'GOOGLE') {
-        throw new UnauthorizedException('Sua conta foi criada com o Google');
+        throw new UnauthorizedException(CONFIG_MESSAGES.googleAccountExists);
       }
 
       const isPasswordValid = await bcrypt.compare(

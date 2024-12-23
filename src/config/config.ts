@@ -33,6 +33,7 @@ export const CONFIG_MESSAGES = {
   invalidEmail: 'Email inválido.',
   tooManyRequests: 'Muitas tentativas, aguarde um momento.',
   googleLoginError: 'Erro no login Google.',
+  googleAccountExists: 'Conta conectada com o Google.',
   resetPasswordReseted: 'Senha redefinida com sucesso.',
   resetPasswordLinkSent: 'Link de redefinição enviado.',
 } as const;
