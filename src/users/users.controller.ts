@@ -9,7 +9,10 @@ import {
   Patch,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateUserInput, UpdateProfileInput } from './inputs/user.inputs';
+import {
+  UpdateUserInput,
+  UpdateProfileInput,
+} from './validator/user.validator';
 import { Role } from '@prisma/client';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';

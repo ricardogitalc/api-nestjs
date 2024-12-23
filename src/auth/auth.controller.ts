@@ -17,7 +17,7 @@ import {
   refreshTokenInput,
   resetPwdSentInput,
   resetPwdConfInput,
-} from './inputs/auth.inputs';
+} from './validator/auth.validator';
 
 @Controller('auth')
 export class AuthController {
