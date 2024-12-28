@@ -277,14 +277,15 @@ export class AuthService {
             verified: true,
           },
         });
-      } else {
-        const userId = user.id;
-
-        await this.prismaService.user.update({
-          where: { id: userId },
-          data: { profileUrl: profile.profileUrl, provider: 'GOOGLE' },
-        });
       }
+      // else {
+      //   const userId = user.id;
+
+      //   await this.prismaService.user.update({
+      //     where: { id: userId },
+      //     data: { profileUrl: profile.profileUrl, provider: 'GOOGLE' },
+      //   });
+      // }
 
       const accessToken = await this.generateJwtTokens(user);
       const refreshToken = await this.generateRefreshTokens(user.id);
