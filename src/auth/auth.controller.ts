@@ -17,7 +17,7 @@ import {
   refreshTokenInput,
   resetPwdSentInput,
   resetPwdConfInput,
-} from './validator/auth.validator';
+} from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -82,21 +82,8 @@ export class AuthController {
         req.user,
       );
 
-      res.cookie('accessToken', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-      });
-
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-      });
-
-      return res.redirect(`${this.configService.get('FRONTEND_URL')}/callback`);
+      const redirectUrl = `${this.configService.get('FRONTEND_URL')}/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`;
+      return res.redirect(redirectUrl);
     } catch (error) {
       return res.redirect(`${this.configService.get('FRONTEND_URL')}/entrar`);
     }

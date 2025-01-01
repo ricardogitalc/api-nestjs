@@ -10,7 +10,7 @@ import {
   CreateUserInput,
   UpdateUserInput,
   UpdateProfileInput,
-} from './validator/user.validator';
+} from './dto/user.dto';
 
 @Injectable()
 export class UsersService {

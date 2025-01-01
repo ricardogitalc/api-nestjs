@@ -8,7 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { CONFIG_MESSAGES, JWT_TIMES } from 'src/config/config';
 import { ConfigService } from '@nestjs/config';
 import * as jose from 'jose';
-import { loginUserInput, registerUserInput } from './validator/auth.validator';
+import { loginUserInput, registerUserInput } from './dto/auth.dto';
 import { ResendService } from '../email/resend-client';
 import { EMAIL_TEMPLATES } from '../email/email.constants';
 
